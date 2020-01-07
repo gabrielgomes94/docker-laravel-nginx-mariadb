@@ -1,0 +1,58 @@
+version: '3'
+services:
+
+  #Laravel App
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: hakase-labs/laravel
+    container_name: app
+    volumes:
+      - ./storage:/var/www/storage
+    depends_on:
+      - db
+    links:
+      - db
+    networks:
+      - mynet
+
+  #Nginx Service
+  web:
+    container_name: nginx_server
+    build:
+      context: ./
+      dockerfile: web.dockerfile
+    volumes:
+      - ./storage/logs/:/var/log/nginx
+    ports:
+      - 8000:80
+    networks:
+      - mynet
+
+  #MySQL Service
+  db:
+    container_name: db
+    image: mariadb:10.3
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: laraveldb
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravelpassworddb
+      MYSQL_ROOT_PASSWORD: rootpasswordmysql
+    volumes:
+      - mysqldata:/var/lib/mysql/
+    networks:
+      - mynet
+
+#Docker Networks
+networks:
+  mynet:
+    driver: bridge
+
+#Volumes
+volumes:
+  mysqldata:
+    driver: local
